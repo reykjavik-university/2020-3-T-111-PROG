@@ -331,9 +331,14 @@ def calculate_assignment_grade(assignment_grades:list, extra_assignment_grades:l
     the extra assignments can give some bonus points.
     The exact implementation is as follows:
 
-    For each class, i.e. each pair of Assignment N / Assignment N+,
-    the score for that Assignment is taken to be the sum of the points for both,
-    while the maximum available points remains that of the basic assignment.
+    First, the grade from each extra assignment is compared to the established grade from the basic assignments,
+    and only those where the student scored higher than the basic grade are taken into account.
+    Of those, the average grade is calculated,
+    and then the total grade for this part is calculated as the weighted average of
+    the grade for the basic assignments and the grade for the extra assignments,
+    where the weight for the basic assignments is half the number of basic assignments,
+    and the weight for the extra assignments is the number of extra assignments being taken into account,
+    but of course scaled so that the weights sum up to 1.
 
     However, in this exercise, we will ignore this extra complication, and just use the grades from the basic assignment.
     
