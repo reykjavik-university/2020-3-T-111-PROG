@@ -25,7 +25,7 @@ def compute_product(n_int):
     
     return the_product
 
-def perform_menu_action(n_int):
+def perform_menu_action(choice, n_int):
     if choice == MENU_SUM:
         the_result = compute_sum(n_int)
     elif choice == MENU_PRODUCT:
@@ -38,6 +38,6 @@ while choice != MENU_QUIT:
     if choice in MENU_PERFORMERS:
         n_int = get_int_input("Enter value for n: ")
         if n_int is not None:
-            perform_menu_action(n_int)    
+            perform_menu_action(choice, n_int)    
     choice = get_int_input(MENU_PROMPT)
     
