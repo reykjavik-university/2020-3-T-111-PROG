@@ -1,3 +1,5 @@
+ZERO = 0
+
 def open_file(file_name):
     '''Opens the given filname and returns its file object, or None if not found'''
     try:
@@ -35,7 +37,7 @@ def row_sum_same(matrix):
         if first_row:
             first_row = False
         elif sum_row != last_sum:
-            return 0
+            return ZERO
         last_sum = sum_row
     
     return last_sum
@@ -53,7 +55,7 @@ def col_sum_same(matrix):
         if first_col:
             first_col = False
         elif sum_col != last_sum:
-            return 0
+            return ZERO
         last_sum = sum_col
     
     return sum_col
