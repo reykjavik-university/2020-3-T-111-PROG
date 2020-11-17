@@ -29,40 +29,35 @@ def display(matrix):
 
 def row_sum_same(matrix):
     '''Returns the sum of the elements in each row of the matrix if the sum is the same, else 0'''
-    last_sum = 0
-    first_row = True
-
-    for row in matrix:
-        sum_row = sum(row)
-        if first_row:
-            first_row = False
-        elif sum_row != last_sum:
-            return ZERO
-        last_sum = sum_row
     
-    return last_sum
+    first_row_sum = sum(matrix[0])
+    for row in matrix[1:]:
+        row_sum = sum(row)
+        if row_sum != first_row_sum:
+            return ZERO
+    
+    return first_row_sum
 
 def col_sum_same(matrix):
     '''Returns the sum of the elements in each column of the matrix if the sum is the same, else 0'''
+    
+    first_col_sum = 0
+    for row in matrix:
+        first_col_sum += row[0] 
+    
     dimension = len(matrix)
-    last_sum = 0
-    first_col = True
-    
-    for i in range(dimension):
+    for i in range(1, dimension):
         sum_col = 0
-        for j in range(dimension):
-            sum_col += matrix[j][i]
-        if first_col:
-            first_col = False
-        elif sum_col != last_sum:
+        for row in matrix:
+            sum_col += row[i]   # row[i] is the i-th column of row
+        if sum_col != first_col_sum:
             return ZERO
-        last_sum = sum_col
     
-    return sum_col
+    return first_col_sum
 
 def is_same_sums(matrix):
     '''Returns true if the sum of the elements in each row and each colunm of the matrix is the same value'''
-    return 0 != row_sum_same(matrix) == col_sum_same(matrix)
+    return ZERO != row_sum_same(matrix) == col_sum_same(matrix)
 
 def main():
     file_name = input("File name: ")
