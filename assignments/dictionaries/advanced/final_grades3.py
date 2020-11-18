@@ -20,7 +20,8 @@ Finally, this program prints out the grades of the top 10 students (nicely forma
 to show an example of what can be done with the results.
 """
 
-import csv, operator
+import csv
+import operator
 
 
 # https://stackoverflow.com/questions/6088581/what-are-python-best-practices-for-dictionary-dict-key-constants
@@ -74,9 +75,9 @@ def main():
         calculate_final_grades(student_dicts)
         display_grades(student_dicts)
 
-def read_grades_from_file(filename:str) -> list:
-    '''Parses the file into a list of lists, one for each line of the file '''
 
+def read_grades_from_file(filename:str) -> list:
+    """Parses the file into a list of lists, one for each line of the file."""
     try:
         with open(filename, encoding='utf-8') as grade_file:
             return list(csv.reader(grade_file))
@@ -85,23 +86,45 @@ def read_grades_from_file(filename:str) -> list:
         print(f"File '{filename}' not found")
         return None
 
+
 def identify_columns(headers_line:list) -> dict:
-    '''Figures out what the indices of various headers are
+    """Figures out what the indices of various headers are.
+
+    Args:
+      headers_line:
+        The first line of the gradebook, which contains the column headers.
+        Will not be modified.
     
-    Returns a dictionary with the indices of all relevant headers.
-    The intended use of this dictionary is demonstrated by the following examples:
+    Returns:
+        A dictionary with the indices of all relevant headers.
+        For example:
 
-    1. Given a line from the gradebook, for a particular student, the name of the student is found as
-    name = f"{line[columns[FIRST_NAME]]} {line[columns[LAST_NAME]]}"
-    
-    2. Index of grade from final exam (which is unique):
-    final_exam_score = line[columns[FINAL_EXAM]]
+        {
+            FIRST_NAME: 0,
+            LAST_NAME: 1,
+            EMAIL: 2,
+            SECTION: 3,
+            QUIZZES: [4, 6, 8, 12, 16, 20, 24, 28],
+            ASSIGNMENTS: [5, 9, 14, 17, 19, 26, 29, 32, 34],
+            EXTRA_ASSIGNMENTS: [7, 10, 13, 18, 21, 25, 30],
+            PROJECTS: [11, 15, 22, 27, 33],
+            MIDTERMS: [23, 31],
+            FINAL_EXAM: 35,
+        }
 
-    3. Index of grades from other categories, such as projects:
-    project_scores = [line[column] for column in columns[PROJECTS]]
+        The intended use of this dictionary is demonstrated by the following examples:
+        >>> columns = identify_columns(gradebook[0])
+        Given a line from the gradebook for a particular student:
 
-    Does not modify the headers_line list
-    '''
+        1. The name of the student is found as:
+        >>> name = f"{line[columns[FIRST_NAME]]} {line[columns[LAST_NAME]]}"
+
+        2. Index of grade from final exam (which is unique):
+        >>> final_exam_score = line[columns[FINAL_EXAM]]
+
+        3. Index of grades from other categories, such as projects:
+        >>> project_scores = [line[column] for column in columns[PROJECTS]]
+    """
 
     columns = {}
     for category in [QUIZZES, ASSIGNMENTS, EXTRA_ASSIGNMENTS, PROJECTS, MIDTERMS]:
@@ -116,15 +139,15 @@ def identify_columns(headers_line:list) -> dict:
 
     return columns
 
-def determine_category(header:str) -> str:
-    '''Determines which category the given header belongs to
 
-    Special care must be taken to distinguish between the normal assignments and the extra assignments.
-    The header for assignment 1 begins with "Assignment 1:".
-    The header for assignment 1+ begins with "Assignment 1+:"
-    They share the prefix "Assignment 1"
-    so checking the header for the prefix "Assignment" is not enough to distinguish between these two categories.
-    '''
+def determine_category(header:str) -> str:
+    """Determines which category the given header belongs to."""
+
+    # Special care must be taken to distinguish between the normal assignments and the extra assignments.
+    # The header for assignment 1 begins with "Assignment 1:".
+    # The header for assignment 1+ begins with "Assignment 1+:"
+    # They share the prefix "Assignment 1"
+    # so checking the header for the prefix "Assignment" is not enough to distinguish between these two categories.
 
     for category in HEADER_PREFIXES:
         if header.startswith(HEADER_PREFIXES[category]):
@@ -135,23 +158,31 @@ def determine_category(header:str) -> str:
     return "Unknown"
 
 
+
 def get_points_possible(subheaders_line:list, columns:dict) -> dict:
-    '''Reads maximum available points for each grade from the file
+    """Reads maximum available points for each grade from the file.
+
+    Args:
+      subheaders_line:
+        The second line of the gradebook,
+        which contains the maximum available points for each coursework.
+        Will not be modified.
+      columns:
+        A dictionary with the indices of all relevant headers.
+        Will not be modified.
     
-    Returns a dictionary with the maximum points that can be scored for each quiz, assignment, project and exam.
-    The resulting dictionary of points_possible is intended to be used for comparison with grades of an individual student, as in the following:
+    Returns:
+        A dictionary with the maximum points that can be scored for each coursework.
+        Intended to be used for comparison with grades of an individual student,
+        as demonstrated by the following:
 
-    max_points = points_possible[category]
-    points = [float(student_line[column]) for column in columns[category]]
-    count = len(max_points)
-    assert len(points) == count
-    for i in range(count):
-        assert 0 <= points[i] <= max_points[i] > 0
-    grades = [points[i] / max_points[i] for i in range(count)]
-
-    Does not modify the subheaders_line list
-    Does not modify the columns dictionary
-    '''
+        >>> points_possible = get_points_possible(gradebook[1], columns)
+        >>> max_points = points_possible[category]
+        >>> points = [float(student_line[column]) for column in columns[category]]
+        >>> assert len(points) == len(max_points)
+        >>> assert all([0 <= score <= maximum > 0 for score, maximum in zip(points, max_points))
+        >>> grades = [score / maximum for score, maximum in zip(points, max_points)]
+    """
 
     assert subheaders_line[0] == "Points Possible"
     points_possible = {}
@@ -160,16 +191,23 @@ def get_points_possible(subheaders_line:list, columns:dict) -> dict:
     points_possible[FINAL_EXAM] = float(subheaders_line[columns[FINAL_EXAM]]) if FINAL_EXAM in columns else 1
     return points_possible
 
-def extract_student_data(student_lines:list, columns:dict) -> list:
-    '''Extracts the student data from the file and organizes it into dictionaries
 
-    Returns a list of dictionaries, one for each student,
-    containing the points scored by the student in each quiz, assignment, project and exam,
-    along with some basic information about the student.
-    
-    Does not modify the student_lines list
-    Does not modify the columns dictionary
-    '''
+def extract_student_data(student_lines:list, columns:dict) -> list:
+    """Extracts the student data from the file and organizes it into dictionaries.
+
+    Args:
+      student_lines:
+        A list of lines from the gradebook (aside from the first two lines).
+        Will not be modified.
+      columns:
+        A dictionary with the indices of all relevant headers.
+        Will not be modified.
+
+    Returns:
+        A list of dictionaries, one for each student,
+        containing the points scored by the student in each coursework,
+        along with some basic information about the student.
+    """
 
     student_dicts = []
     for student_line in student_lines:
@@ -181,16 +219,23 @@ def extract_student_data(student_lines:list, columns:dict) -> list:
 
     return student_dicts
 
-def get_basic_information(student_line:list, columns:dict) -> dict:
-    '''Extracts the basic information about the given student from the file
 
-    Returns a dictionary with the name and email of the given student,
-    as well as the section the student is assigned to
-    (i.e. which lectures the student is supposed to show up for).
-    
-    Does not modify the student_line list
-    Does not modify the columns dictionary
-    '''
+def get_basic_information(student_line:list, columns:dict) -> dict:
+    """Extracts the basic information about the given student from the file.
+
+    Args:
+      student_lines:
+        A list of lines from the gradebook (aside from the first two lines).
+        Will not be modified.
+      columns:
+        A dictionary with the indices of all relevant headers.
+        Will not be modified.
+
+    Returns:
+        A dictionary with the name and email of the given student,
+        as well as the section the student is assigned to
+        (i.e. which lectures the student is supposed to show up for).
+    """
 
     return {
         NAME: f"{student_line[columns[FIRST_NAME]]} {student_line[columns[LAST_NAME]]}",
@@ -199,31 +244,48 @@ def get_basic_information(student_line:list, columns:dict) -> dict:
     }
 
 
+
 def calculate_raw_grades(student_dicts:list, points_possible:dict) -> None:
-    '''Fills in the individual grades base on scored points and the corresponding maximum points
+    """Fills in the individual grades based on scored points and the corresponding maximum points.
 
     Stores the results into the student dictionaries in the student_dicts list
-    
-    Modifies the student_dicts list
-    Does not modify the points_possible dictionary
-    '''
+
+    Args:
+      student_dicts:
+        A list of dictionaries, one for each student,
+        containing the points scored by the student in each coursework,
+        along with some basic information about the student.
+        *** WILL BE MODIFIED ***
+      points_possible:
+        A dictionary with the maximum points that can be scored for each coursework.
+        Will not be modified.
+    """
 
     for student_dict in student_dicts:
         for category in [QUIZZES, ASSIGNMENTS, EXTRA_ASSIGNMENTS, PROJECTS, MIDTERMS]:
             fill_in_category_grades(category, student_dict, points_possible_for_category=points_possible[category])
         fill_in_final_exam_grade(student_dict, points_possible)
 
+
 def fill_in_category_grades(category:str, student:dict, points_possible_for_category:list) -> None:
-    '''Calculates the grades for the given category, based on the scored points and the maximum points
+    """Calculates the grades for the given category, based on the scored points and the maximum points.
 
     Stores the results as a list into the student dictionary.
     For example, if the category is "quiz",
     then the scores will be read from student["quiz scores"]
-    and the grades written to student["quiz grades"]
-    
-    Modifies the student dictionary
-    Does not modify the points_possible_for_category list
-    '''
+    and the grades list written to student["quiz grades"]
+
+    Args:
+      category:
+        The name of the category to fill in.
+      student:
+        A dictionary containing the points scored by the student in each coursework,
+        along with some basic information about the student.
+        *** WILL BE MODIFIED ***
+      points_possible_for_category:
+        A list of the maximum points that can be scored for the given category.
+        Will not be modified.
+    """
 
     scores = student[f"{category}{SCORES}"]
     assert len(scores) == len(points_possible_for_category)
@@ -242,15 +304,23 @@ def fill_in_category_grades(category:str, student:dict, points_possible_for_cate
     
     student[f"{category}{GRADES}"] = grades
 
+
 def fill_in_final_exam_grade(student:dict, points_possible:dict) -> None:
-    '''Calculates the grade from the final exam, based on the scored points and the maximum points
+    """Calculates the grade from the final exam, based on the scored points and the maximum points.
     
     Stores the results into the student dictionary.
-    Reads the score from student["final exam score"] and writes the grade to student["final exam grade"]
-    
-    Modifies the student dictionary
-    Does not modify the points_possible dictionary
-    '''
+    Reads the score from student["final exam score"] and
+    writes the grade to student["final exam grade"]
+
+    Args:
+      student:
+        A dictionary containing the points scored by the student in each coursework,
+        among other things, such as some basic information about the student.
+        *** WILL BE MODIFIED ***
+      points_possible:
+        A dictionary with the maximum points that can be scored for each coursework.
+        Will not be modified.
+    """
 
     points = student[f"{FINAL_EXAM}{SCORE}"]
     max_points = points_possible[FINAL_EXAM]
@@ -265,15 +335,20 @@ def fill_in_final_exam_grade(student:dict, points_possible:dict) -> None:
     student[f"{FINAL_EXAM}{GRADE}"] = grade
 
 
+
 def calculate_final_grades(student_dicts:list) -> None:
-    '''Calculates the final grades of all students
+    """Calculates the final grades of all students.
 
     Calculates the grades for each category and, from these, the final grade.
-    Stores these results in the student dictionary.
-    Does this for all students.
-    
-    Modifies the student_dicts list
-    '''
+    Stores these results in the student dictionary, for each student.
+
+    Args:
+      student_dicts:
+        A list of dictionaries, one for each student,
+        containing their grades in each coursework,
+        among other things, such as some basic information about the student.
+        *** WILL BE MODIFIED ***
+    """
 
     for student_dict in student_dicts:
         quiz_grade = calculate_quiz_grade(quiz_grades=student_dict[f"{QUIZZES}{GRADES}"])
@@ -296,16 +371,23 @@ def calculate_final_grades(student_dicts:list) -> None:
             FINAL_GRADE: final_grade
         })
 
-def calculate_quiz_grade(quiz_grades:list) -> float:
-    '''Calculates the contribution from the quiz grades toward the final grade
 
-    Returns the calculated grade based on the Assessment specification:
+def calculate_quiz_grade(quiz_grades:list) -> float:
+    """Calculates the contribution from the quiz grades toward the final grade.
+
+    Follows the Assessment specification on Canvas:
     - Short quizzes in class: 10%  (75% best count)
     
     Drops the lowest quarter of grades, and averages the rest.
+
+    Args:
+      quiz_grades:
+        A list of a particular student's quiz grades.
+        Will not be modified.
     
-    Does not modify the quiz_grades list
-    '''
+    Returns:
+        A single combined grade from the quizzes.
+    """
 
     quiz_grades = quiz_grades[1:] # Quiz 0 did not count
 
@@ -318,32 +400,26 @@ def calculate_quiz_grade(quiz_grades:list) -> float:
 
     return grade
 
-def calculate_assignment_grade(assignment_grades:list, extra_assignment_grades:list=None) -> float:
-    '''Calculates the contribution from the assignment grades toward the final grade
 
-    Returns the calculated grade based on the Assessment specification:
+def calculate_assignment_grade(assignment_grades:list, extra_assignment_grades:list) -> float:
+    """Calculates the contribution from the assignment grades toward the final grade.
+
+    Follows the Assessment specification on Canvas:
     - Programming projects in class: 10% (Full points if the students gets 50%, on average, for these projects over the whole term)
     
     Calculates the average, and scales up by a factor of 2 (limited to full points)
 
-    Extra assignments were provided for students as further practice on more involved problems.
-    In the unlikely case that a student does not get full score for the basic assignments, while doing well on the extra assignments,
-    the extra assignments can give some bonus points.
-    The exact implementation is as follows:
-
-    First, the grade from each extra assignment is compared to the established grade from the basic assignments,
-    and only those where the student scored higher than the basic grade are taken into account.
-    Of those, the average grade is calculated,
-    and then the total grade for this part is calculated as the weighted average of
-    the grade for the basic assignments and the grade for the extra assignments,
-    where the weight for the basic assignments is half the number of basic assignments,
-    and the weight for the extra assignments is the number of extra assignments being taken into account,
-    but of course scaled so that the weights sum up to 1.
-
-    However, in this exercise, we will ignore this extra complication, and just use the grades from the basic assignment.
+    Args:
+      assignment_grades:
+        A list of a particular student's assignment grades.
+        Will not be modified.
+      extra_assignment_grades:
+        A list of the same student's extra assignment grades.
+        Will not be modified.
     
-    Does not modify the assignment_grades list
-    '''
+    Returns:
+        A single combined grade from the assignments and the extra assignments.
+    """
 
     grade = average(assignment_grades)
     assert 0 <= grade <= 1
@@ -354,18 +430,41 @@ def calculate_assignment_grade(assignment_grades:list, extra_assignment_grades:l
     grade = min(1, grade) # limit to full points
     assert 0 <= grade <= 1
 
+    # Extra assignments were provided for students as further practice on more involved problems.
+    # In the unlikely case that a student does not get full score for the basic assignments, while doing well on the extra assignments,
+    # the extra assignments can give some bonus points.
+    # The exact implementation is as follows:
+
+    # First, the grade from each extra assignment is compared to the established grade from the basic assignments,
+    # and only those where the student scored higher than the basic grade are taken into account.
+    # Of those, the average grade is calculated,
+    # and then the total grade for this part is calculated as the weighted average of
+    # the grade for the basic assignments and the grade for the extra assignments,
+    # where the weight for the basic assignments is half the number of basic assignments,
+    # and the weight for the extra assignments is the number of extra assignments being taken into account,
+    # but of course scaled so that the weights sum up to 1.
+
+    # However, in this exercise, we will ignore this extra complication, and just use the grades from the basic assignment.
+
     return grade
 
-def calculate_project_grade(project_grades:list) -> float:
-    '''Calculates the contribution from the project grades toward the final grade
 
-    Returns the calculated grade based on the Assessment specification:
+def calculate_project_grade(project_grades:list) -> float:
+    """Calculates the contribution from the project grades toward the final grade.
+
+    Follows the Assessment specification on Canvas:
     - Homework projects (max group size 2): 20% (7 best of 10 count)
     
     Drops the lowest 3, and averages the remaining 7.
+
+    Args:
+      project_grades:
+        A list of a particular student's project grades.
+        Will not be modified.
     
-    Does not modify the project_grades list
-    '''
+    Returns:
+        A single combined grade from the projects.
+    """
 
     project_grades = project_grades[:]
 
@@ -377,10 +476,11 @@ def calculate_project_grade(project_grades:list) -> float:
 
     return grade
 
-def calculate_exam_grade(midterm_grades:list, final_exam_grade:float) -> float:
-    '''Calculates the contribution from the grades from the midterm exams and final exam toward the final grade
 
-    Returns the calculated grade based on the Assessment specification:
+def calculate_exam_grade(midterm_grades:list, final_exam_grade:float) -> float:
+    """Calculates the contribution from the grades from the midterm exams and final exam toward the final grade.
+
+    Follows the Assessment specification on Canvas:
     - Midterm exams: 20%  (Two midterms, no repeat exam)
     - Final exam: 40-60%.  The grade of 5 is needed to pass the course.
     - If a student obtains a higher grade in the final exam compared to the midterm exams,
@@ -390,8 +490,16 @@ def calculate_exam_grade(midterm_grades:list, final_exam_grade:float) -> float:
     but only those that are higher than the grade from the final exam.
     Those that are lower are ignored, and the final exam counts more instead.
 
-    Does not modify the midterm_grades list
-    '''
+    Args:
+      midterm_grades:
+        A list of a particular student's midterm grades.
+        Will not be modified.
+      final_exam_grade:
+        The same student's final exam grade.
+
+    Returns:
+        A single combined grade from the midterms and the final exam.
+    """
 
     assert len(midterm_grades) <= 2
     exam_grades = [grade for grade in midterm_grades if grade > final_exam_grade]
@@ -411,10 +519,11 @@ def calculate_exam_grade(midterm_grades:list, final_exam_grade:float) -> float:
 
     return exam_grade
 
-def calculate_final_grade(quiz_grade, assignment_grade, project_grade, exam_grade):
-    '''Calculates the final grade from the various contributing factors
 
-    Returns the calculated grade based on the Assessment specification:
+def calculate_final_grade(quiz_grade:float, assignment_grade:float, project_grade:float, exam_grade:float) -> float:
+    """Calculates the final grade from the various contributing factors.
+
+    Follows the Assessment specification on Canvas:
     - Short quizzes in class: 10%
     - Programming projects in class: 10%
     - Homework projects (max group size 2): 20%
@@ -429,28 +538,50 @@ def calculate_final_grade(quiz_grade, assignment_grade, project_grade, exam_grad
         10% - assignments
         20% - projects
         60% - exams
-    '''
+
+    Args:
+      quiz_grade:
+        A single combined grade from the quizzes.
+      assignment_grade:
+        A single combined grade from the assignments and the extra assignments.
+      project_grade:
+        A single combined grade from the projects.
+      exam_grade:
+        A single combined grade from the midterms and the final exam.
+
+    Returns:
+        A single combined grade from the quizzes, assignments, projects and exams.
+    """
+
     grade = weighted_average([quiz_grade, assignment_grade, project_grade, exam_grade], weights=[10,10,20,60])
     assert 0 <= grade <= 1
 
     return grade
 
-def average(grades:list) -> float:
-    '''Returns the average of the numbers in the grades list if not empty, otherwise 0 '''
 
+
+def average(grades:list) -> float:
+    """Returns the average of the numbers in the grades list if not empty, otherwise 0."""
     return sum(grades) / len(grades) if grades else 0
 
+
 def weighted_average(grades:list, weights:list) -> float:
-    '''Calculates the weighted average of the grades list with respect to the given weights
+    """Calculates the weighted average of the grades list with respect to the given weights.
 
     Expects non-negative weights.
     Both lists must be of the same length.
 
-    Returns the weighted average if any positive weights found, 0 otherwise.
+    Args:
+      grades:
+        A list of numbers.
+        Will not be modified.
+      weights:
+        A list of weights.
+        Will not be modified.
     
-    Does not modify the grades list
-    Does not modify the (original) weights list
-    '''
+    Returns:
+        The weighted average if any positive weights found, 0 otherwise.
+    """
 
     assert len(grades) == len(weights)
     for weight in weights:
@@ -458,17 +589,22 @@ def weighted_average(grades:list, weights:list) -> float:
 
     total_weight = sum(weights)
     if total_weight > 0:
-        weights = [weight / total_weight for weight in weights]
+        weights = [weight / total_weight for weight in weights]  # Does not modify the original.
         assert sum(weights) == 1
 
     return sum([grade * weight for grade, weight in zip(grades, weights)])
 
 
+
 def display_grades(student_dicts:list) -> None:
-    '''Prints out the top 10 student grades
-    
-    Does not modify the student_dicts list
-    '''
+    """Prints out the top 10 student grades.
+
+    Args:
+      student_dicts:
+        A list of dictionaries, one for each student, containing name and final grade,
+        along with intermediate grades for each category.
+        Will not be modified.
+    """
 
     NAME_WIDTH = 35
     HEADER_WIDTH = 20

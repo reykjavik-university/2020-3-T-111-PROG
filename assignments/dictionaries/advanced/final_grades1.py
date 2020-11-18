@@ -52,9 +52,9 @@ def main():
         index_dict = identify_columns(headers_line=grades[0])
         display_index_dict(index_dict, headers_line=grades[0])
 
-def read_grades_from_file(filename:str) -> list:
-    '''Parses the file into a list of lists, one for each line of the file '''
 
+def read_grades_from_file(filename:str) -> list:
+    """Parses the file into a list of lists, one for each line of the file."""
     try:
         with open(filename, encoding='utf-8') as grade_file:
             return list(csv.reader(grade_file))
@@ -63,23 +63,45 @@ def read_grades_from_file(filename:str) -> list:
         print(f"File '{filename}' not found")
         return None
 
+
 def identify_columns(headers_line:list) -> dict:
-    '''Figures out what the indices of various headers are
+    """Figures out what the indices of various headers are.
+
+    Args:
+      headers_line:
+        The first line of the gradebook, which contains the column headers.
+        Will not be modified.
     
-    Returns a dictionary with the indices of all relevant headers.
-    The intended use of this dictionary is demonstrated by the following examples:
+    Returns:
+        A dictionary with the indices of all relevant headers.
+        For example:
 
-    1. Given a line from the gradebook, for a particular student, the name of the student is found as
-    name = f"{line[columns[FIRST_NAME]]} {line[columns[LAST_NAME]]}"
-    
-    2. Index of grade from final exam (which is unique):
-    final_exam_score = line[columns[FINAL_EXAM]]
+        {
+            FIRST_NAME: 0,
+            LAST_NAME: 1,
+            EMAIL: 2,
+            SECTION: 3,
+            QUIZZES: [4, 6, 8, 12, 16, 20, 24, 28],
+            ASSIGNMENTS: [5, 9, 14, 17, 19, 26, 29, 32, 34],
+            EXTRA_ASSIGNMENTS: [7, 10, 13, 18, 21, 25, 30],
+            PROJECTS: [11, 15, 22, 27, 33],
+            MIDTERMS: [23, 31],
+            FINAL_EXAM: 35,
+        }
 
-    3. Index of grades from other categories, such as projects:
-    project_scores = [line[column] for column in columns[PROJECTS]]
+        The intended use of this dictionary is demonstrated by the following examples:
+        >>> columns = identify_columns(gradebook[0])
+        Given a line from the gradebook for a particular student:
 
-    Does not modify the headers_line list
-    '''
+        1. The name of the student is found as:
+        >>> name = f"{line[columns[FIRST_NAME]]} {line[columns[LAST_NAME]]}"
+
+        2. Index of grade from final exam (which is unique):
+        >>> final_exam_score = line[columns[FINAL_EXAM]]
+
+        3. Index of grades from other categories, such as projects:
+        >>> project_scores = [line[column] for column in columns[PROJECTS]]
+    """
 
     columns = {}
     for category in [QUIZZES, ASSIGNMENTS, EXTRA_ASSIGNMENTS, PROJECTS, MIDTERMS]:
@@ -94,15 +116,15 @@ def identify_columns(headers_line:list) -> dict:
 
     return columns
 
-def determine_category(header:str) -> str:
-    '''Determines which category the given header belongs to
 
-    Special care must be taken to distinguish between the normal assignments and the extra assignments.
-    The header for assignment 1 begins with "Assignment 1:".
-    The header for assignment 1+ begins with "Assignment 1+:"
-    They share the prefix "Assignment 1"
-    so checking the header for the prefix "Assignment" is not enough to distinguish between these two categories.
-    '''
+def determine_category(header:str) -> str:
+    """Determines which category the given header belongs to."""
+
+    # Special care must be taken to distinguish between the normal assignments and the extra assignments.
+    # The header for assignment 1 begins with "Assignment 1:".
+    # The header for assignment 1+ begins with "Assignment 1+:"
+    # They share the prefix "Assignment 1"
+    # so checking the header for the prefix "Assignment" is not enough to distinguish between these two categories.
 
     for category in HEADER_PREFIXES:
         if header.startswith(HEADER_PREFIXES[category]):
@@ -114,11 +136,16 @@ def determine_category(header:str) -> str:
 
 
 def display_index_dict(indices:dict, headers_line:list) -> None:
-    '''Prints out the identified indices along with the corresponding headers
-    
-    Does not modify the indices dictionary
-    Does not modify the headers_line list
-    '''
+    """Prints out the identified indices along with the corresponding headers.
+
+    Args:
+      indices:
+        A dictionary with the indices of all relevant headers.
+        Will not be modified.
+      headers_line:
+        The first line of the gradebook, which contains the column headers.
+        Will not be modified.
+    """
 
     INDENT_ALIGN = 4
 
