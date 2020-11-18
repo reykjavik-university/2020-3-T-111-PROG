@@ -32,7 +32,7 @@ SECTION = "section"
 
 QUIZZES = "quiz"
 ASSIGNMENTS = "assignment"
-EXTRA_ASSIGNMENTS = "+assignment"
+EXTRA_ASSIGNMENTS = "extra assignment"
 PROJECTS = "project"
 MIDTERMS = "midterm"
 FINAL_EXAM = "final exam"
