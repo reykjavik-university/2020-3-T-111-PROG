@@ -1,21 +1,21 @@
+"""A program that prepares to calculate final grades of students in this course.
+
+Takes as input a .csv file exported from the gradebook on Mímir.
+We need to extract information for every student on how many points they scored
+in individual quizzes, assignments, projects and exams,
+as well as the maximum available points for each.
+
+Since not all of those have been performed in Mímir already,
+it is unknown at this time in which order they will appear in the file.
+So this program identifies the columns dynamically
+(after the semester is over, it will be possible to simplify this program
+by providing this mapping as hard-coded constants).
+
+Next, it extracts information from the file, about the maximum available points for each coursework,
+and prints it out (nicely formatted), to show an example of what can be done with the results.
+"""
+
 import csv
-
-# A program that prepares to calculate final grades of students in this course.
-#
-# Takes as input a .csv file exported from the gradebook on Mímir.
-# We need to extract information for every student on how many points they scored
-# in individual quizzes, assignments, projects and exams,
-# as well as the maximum available points for each.
-# 
-# Since not all of those have been performed in Mímir already,
-# it is unknown at this time in which order they will appear in the file.
-# So this program identifies the columns dynamically
-# (after the semester is over, it will be possible to simplify this program
-# by providing this mapping as hard-coded constants).
-# 
-# Next, it extracts information from the file, about the maximum available points for each coursework,
-# and prints it out (nicely formatted), to show an example of what can be done with the results.
-
 
 
 # https://stackoverflow.com/questions/6088581/what-are-python-best-practices-for-dictionary-dict-key-constants

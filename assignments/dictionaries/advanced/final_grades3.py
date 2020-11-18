@@ -1,26 +1,26 @@
+"""A program that calculates final grades of students in this course.
+
+Takes as input a .csv file exported from the gradebook on Mímir.
+Extracts information for every student on how many points they scored
+in individual quizzes, assignments, projects and exams,
+as well as the maximum available points for each.
+
+Since not all of those have been performed in Mímir already,
+it is unknown at this time in which order they will appear in the file.
+So this program identifies the columns dynamically
+(after the semester is over, it will be possible to simplify this program
+by providing this mapping as hard-coded constants).
+
+Next, it standardizes all grades to the scale 0.0 - 1.0,
+and then proceeds to calculate the final grades
+based on the specifications as given on Canvas (under Home -> Assessment):
+https://reykjavik.instructure.com/courses/3802/pages/assessment?titleize=0
+
+Finally, this program prints out the grades of the top 10 students (nicely formatted),
+to show an example of what can be done with the results.
+"""
+
 import csv, operator
-
-# A program that calculates final grades of students in this course.
-#
-# Takes as input a .csv file exported from the gradebook on Mímir.
-# Extracts information for every student on how many points they scored
-# in individual quizzes, assignments, projects and exams,
-# as well as the maximum available points for each.
-# 
-# Since not all of those have been performed in Mímir already,
-# it is unknown at this time in which order they will appear in the file.
-# So this program identifies the columns dynamically
-# (after the semester is over, it will be possible to simplify this program
-# by providing this mapping as hard-coded constants).
-# 
-# Next, it standardizes all grades to the scale 0.0 - 1.0,
-# and then proceeds to calculate the final grades
-# based on the specifications as given on Canvas (under Home -> Assessment):
-# https://reykjavik.instructure.com/courses/3802/pages/assessment?titleize=0
-# 
-# Finally, this program prints out the grades of the top 10 students (nicely formatted),
-# to show an example of what can be done with the results.
-
 
 
 # https://stackoverflow.com/questions/6088581/what-are-python-best-practices-for-dictionary-dict-key-constants
