@@ -2,16 +2,12 @@ DIM = 8 # The dimension of a chess board
 FEN_SEPARATOR = '/'
 EMPTY = ' '
 
-# Starting chess position: 
-# rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
-# After 1. e4 c5 2. Nf3 Nc6:
-# r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R
-
-def display_board(board):
+def display_board(fen_string_list):
     '''Displays the chess board'''
     count = DIM
-    for rank in board:
-        print(count, rank)
+    for fen_string in fen_string_list:
+        expanded_str = expand_fen_rank(fen_string)
+        print(count, expanded_str)
         count -= 1
     print('  abcdefgh')
 
@@ -31,34 +27,19 @@ def expand_fen_rank(rank_str):
     
     return result_str
 
-def get_board_position(fen_position_str):
-    '''Returns the chess board position indicated by the fen_position_str.
-    The board is a list of DIM elements, each element is a string of DIM characters'''
-
-    board = []
-    # fen_ranks is a list of DIM strings.  Each string denotes pieces on a rank on the board.
-    fen_ranks = fen_position_str.split(FEN_SEPARATOR)
-
-    for rank in fen_ranks:
-        expanded_str = expand_fen_rank(rank)
-        board.append(expanded_str)
-    
-    return board
-
-def get_board_errors(board):
-    '''Returns a list of ranks that contain errors for the given board position.'''
+def check_errors(fen_string_list):
+    '''Returns a list of ranks that contain errors for the given list of fen strings.'''
     error_list = []
-    for i in range(DIM):
-        if len(board[i]) != DIM:
+    for i, fen_string in enumerate(fen_string_list):
+        expanded_str = expand_fen_rank(fen_string)
+        if len(expanded_str) != DIM:
             error_list.append(DIM-i)
-
     return error_list
+        
 
-# Main program starts here
-fen_position_str = input("Enter a FEN string: ")
-board = get_board_position(fen_position_str)
-error_list = get_board_errors(board)
-if error_list:
-    print("Errors in ranks: {}".format(error_list))
+fen_string_list = input("Enter a FEN string: ").split(FEN_SEPARATOR)
+errors = check_errors(fen_string_list)
+if errors:
+    print("Errors in ranks: {}".format(errors))
 else:
-    display_board(board)
+    display_board(fen_string_list)
